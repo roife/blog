@@ -520,11 +520,9 @@ let r = ref (λx. x) in
   (r := (λx:Nat. succ x); (!r)true);
 #+end_src
 
-这里 \( r \) 的类型为 \( \forall A. \operatorname{\mathtt{ref}} (A \to A) \) 而不是 \( \operatorname{\mathtt{ref}} (\forall A. A \to A) \)，这是因为在 generalization 时会直接将 \( \forall \) 放置在右手最外侧。因此引入 value restriction 的根源便在于 generalization 的位置。
+这里 \( r \) 的类型为 \( \forall A. \operatorname{\mathtt{ref}} (A \to A) \) 而不是 \( \operatorname{\mathtt{ref}} (\forall A. A \to A) \)，这是 HM 系统推导出来的类型都是 /pricipal/ 的，因为在 generalization 时会直接将 \( \forall \) 放置在右手最外侧。因此引入 value restriction 的根源便在于 generalization 的位置。
 
-那么能不能将其放在 \( \operatorname{\mathtt{ref}} \) 中呢？如果能做到，那么在赋值 =(λx: Nat. succ x)= 时就会出现错误（因为无法将 =Int -> Int= 赋值给 =r=）。
-
-事实上在下一章 System F 中可以看到如果允许这么做，那么这个类型系统将是 rank-N polymorphism 的，其上的类型推导是 undecidable 的。因此这是 let-polymorphism 放弃表达力而换取可判定性的结果。
+那么能不能将其放在 \( \operatorname{\mathtt{ref}} \) 中呢？如果能做到，那么在赋值 =(λx: Nat. succ x)= 时就会出现错误（因为无法将 =Int -> Int= 赋值给 =r=）。但是在下一章 System F 中可以看到，如果允许这么做，那么这个类型系统将是 rank-N polymorphism 的，其上的类型推导是 undecidable 的。因此这是 let-polymorphism 放弃表达力而换取可判定性的结果。
 
 * Implementation of Algorithm W
 
@@ -673,3 +671,14 @@ let r = ref (λx. x) in
     let scheme = generalize (substCtx sigmaT1 []) (applySubsts sigmaT1 ty) in
     pp scheme;;
 #+end_src
+
+* Hindley-Milner 的拓展
+
+- Impredicative polymorphism（System F，下一章讨论）：已经被证明是 undecidable 的；
+- First-class polymorphism：支持将 polymorphic type 作为参数传递，类似于 System F，但是需要一些显式标注的类型来避免 undecidability；
+- Recursive type
+  + Polymorphism + Recursive type = /Polymorphic Recursion/，对应的演算称为 /Milner-Mycroft Calculus/，对应了 semi-unification 问题，也是 undecidable 的；
+  + 但是如果没有 polymorphism，那么这是 decidable 的；
+- Subtyping
+  + 在 norminal subtyping 中，由于两个类型可能没有一个公共的并，或者有可能有多个公共的并，因此它们也就没有 principal type；
+  + 在 structural subtyping 中，发展出了 algebraic subtyping，对 subtyping 做出了一些限制，如不允许 union type 出现在函数参数位置；或者 F-sub 这样的系统，在 System F 上做了 subtyping 的拓展，但是它不支持 H-M 风格的类型推断；另一个替代方案是 row polymorphism，针对 records 和 variants 实现了多态，并实现了近似于 subtyping 的效果。
